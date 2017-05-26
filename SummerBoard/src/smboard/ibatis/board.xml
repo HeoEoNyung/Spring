@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap      
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"      
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="board">
+	<typeAlias alias="BoardModel" type="smboard.board.model.BoardModel"/>
+	<typeAlias alias="BoardCommentModel" type="smboard.board.model.BoardCommentModel"/>
+	
+	<select id="getBoardList" parameterClass="java.util.HashMap" resultClass="BoardModel">
+		select b.idx, b.writer, b.subject, b.content, b.hitcount, b.recommendcount,
+			to_char(b.writedate, 'YYYY-MM-DD HH:MI:SS') writeDate,
+			count(c.idx) as "comment", b.writeId, b.fileName. b.rnum 
+			
+			from (select a.idx, a.writer, a.subject, a.content, 
+					a.hitcount, a.recommendcount, a.writedate, a.writerId. a.fileName, 
+					rownum rnum 
+				
+				from (select idx, writer, subject, content, 
+						hitcount, recommendcount, writedate, writerId, fileName 
+						from jmboard_eo order by idx desc) a ) b
+					
+					left outer join jmboard_comment_eo c on
+					b.idx = c.linkedarticlenum where rnum between #startArticleNum# and #endArticleNum#
+					group by 
+					b.idx, b.writer, b.subject, b.content, b.hitcount, b.recommendcount, 
+	    			b.writedate, b.rnum, b.writerId, b.fileName order by b.idx desc	
+	</select>
+	<select id="getTotalNum" resultClass="int">
+		select count(idx) from jmboard_eo
+	</select>
+	
+	<select id="getSearchTotalNum" resultClass="int">
+		select count(idx) from jmboard_eo where $type$ like '%$keyword$%'
+	</select>
+	
+	<select id="searchArticle" parameterClass="java.util.HashMap" resultClass="BoardModel">
+		select 
+			b.idx, b.writer, b.subject,
+			b.content, b.hitcount, b.recommendcount,
+			to_char(b.writedate, 'YYYY-MM-DD HH:MI:SS') writeDate, 
+			count(c.idx) as "comment", b.writerId, b.fileName, b.rnum
+			
+		from (select a.idx, a.writer, a.subject, a.content, a.hitcount, a.recommendcount,
+				a.writedate, a.writerId, a.fileName, rownum rnum
+				
+			from (select idx, writer, subject, content, hitcount, recommendcount,
+					writedate, writerId, fileName from jmboard_eo 
+					where $type$ like '%$keyword$%' order by idx desc) a ) b 
+					
+		left outer join jmboard_comment_eo c on b.idx = c.linkedarticlenum
+	    where rnum between #startArticleNum# and #endArticleNum#
+	    group by 
+	    	b.idx, b.writer, b.subject, 
+	    	b.content, b.hitcount, b.recommendcount, 
+	    	b.writedate, b.rnum, b.writerId, b.fileName
+	    order by b.idx desc		
+	</select>
+	
+	<select id="getOneArticle" parameterClass="int" resultClass="BoardModel">
+		select idx, writer, subject, content, hitcount, recommendcount, writedate, 
+		writerId, fileName from jmboard_eo where idx=#idx#
+	</select>
+	
+	<select id="getCommentList" parameterClass="int" resultClass="BoardCommentModel">
+		select 
+			idx, writer, content, writeDate, linkedArticleNum, writerId
+		from jmboard_comment_eo where linkedArticleNum = #idx#	order by idx desc
+	</select>
+	
+	<select id="getOneComment" parameterClass="int" resultClass="BoardCommentModel">
+		select idx,writer, content, writeDate, linkedArticleNum, writerId
+		from jomboard_comment_eo where idx = #idx#
+	</select>
+	
+	<insert id="writeArticle" parameterClass="BoardModel">
+		insert into jmboard_eo(idx, writer, subject, content, hitcount, recommendcount,
+			writeDate, writerId, fileName) 
+			values (boardlistseq_eo.nextVal, #writer#, #subject#, #content#, 0, 0, sysdate,
+				#writerId#, #fileName#)
+	</insert>
+	
+	<insert id="writeComment" parameterClass="BoardCommentModel">
+		insert into jmboard_comment_eo (idx, writer, content, writeDate, linkedArticleNum, weiterId)
+		values(boardcommentseq_eo.nextval, #writer#, #content#, sysdate, #linkedArticleNum#, #writerId#)
+	</insert>
+	
+	<update id="updateHitcount" parameterClass="java.util.HashMap">
+		update 	jmboard_eo set hitcount = #hitcount# where idx = #idx#
+	</update>
+	
+	<update id="updateRecommendcount" parameterClass="java.util.HashMap">
+		update jmboard_eo set recommendcount = #recommendcount# where idx = #idx#
+	</update>
+	
+	<delete id="deleteComment" parameterClass="int">
+		delete 	from jmboard_comment_eo where idx = #idx#
+	</delete>
+	
+	<delete id="deleteArticle" parameterClass="int">
+		delete 	from jmboard_eo where idx = #idx#	
+	</delete>
+	
+	<update id="modifyArticle" parameterClass="BoardModel">
+		update jmboard_eo 	set subject = #subject#,
+			content = #content#, fileName = #fileName#	where idx = #idx#
+	</update>
+	
+</sqlMap>
