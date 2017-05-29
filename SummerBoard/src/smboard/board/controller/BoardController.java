@@ -6,6 +6,7 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -136,8 +137,158 @@ public class BoardController {
 		return "redirect:list.do";
 	}
 	
-	/*@RequestMapping("/commentWrite.do")
-	public ModelAndView commentWriteProc(@ModelAttribute)*/
+	@RequestMapping("/commentWrite.do")
+	public ModelAndView commentWriteProc(@ModelAttribute("CommentModel") BoardCommentModel commentModel) {
+		String content = commentModel.getContent().replaceAll("\r\n", "<br/>");
+		commentModel.setContent(content);
+		
+		boardService.writeComment(commentModel);
+		ModelAndView mav = new ModelAndView();
+		mav.addObject("idx", commentModel.getLinkedArticleNum());
+		mav.setViewName("redirect:view.do");
+		
+		return mav;
+	}
+	
+	@RequestMapping("/modify.do")
+	public ModelAndView boardModify(HttpServletRequest request, HttpSession session) {
+		String userId = (String) session.getAttribute("userId");
+		int idx = Integer.parseInt(request.getParameter("idx"));
+		
+		BoardModel board = boardService.getOneArticle(idx);
+		
+		String content = board.getContent().replaceAll("<br/>", "\r\n");
+		
+		ModelAndView mav = new ModelAndView();
+		
+		if(!userId.equals(board.getWriterId())) {
+			mav.addObject("errCode", "1");
+			mav.addObject("idx", idx);
+			mav.setViewName("redirect:view.do");
+		}
+		else {
+			mav.addObject("board", board);
+			mav.setViewName("/board/modify");
+		}
+		
+		return mav;
+	}
+	
+	@RequestMapping(value = "/modify.do", method = RequestMethod.POST)
+	public ModelAndView boardModifyProc(@ModelAttribute("BoardModel")BoardModel boardModel, MultipartHttpServletRequest request) {
+		String orgFileName = request.getParameter("orgFile");
+		MultipartFile newFile = request.getFile("newFile");
+		String newFileName = newFile.getOriginalFilename();
+		
+		boardModel.setFileName(orgFileName);
+		
+		if(newFile != null && !newFileName.equals("")) {
+			if(orgFileName != null && orgFileName.equals("")) {
+				File removeFile = new File(uploadPath + orgFileName);
+				removeFile.delete();
+			}
+			
+			File newUploadFile = new File(uploadPath + newFileName);
+			try{
+				newFile.transferTo(newUploadFile);
+			}catch (Exception e) {
+				e.printStackTrace();
+			}
+			
+			boardModel.setFileName(newFileName);
+		}
+		
+		String content = boardModel.getContent().replaceAll("\r\n", "<br/>");
+		boardModel.setContent(content);
+		
+		boardService.modifyArticle(boardModel);
+		
+		ModelAndView mav = new ModelAndView();
+		mav.addObject("idx", boardModel.getIdx());
+		mav.setViewName("redirect:/board/view.do");
+		
+		return mav;
+		
+	}
+	
+	@RequestMapping("/delete.do")
+	public ModelAndView boardDelete (HttpServletRequest request, HttpSession session) {
+		String userId = (String) session.getAttribute("userId");
+		int idx = Integer.parseInt(request.getParameter("idx"));
+		
+		BoardModel board = boardService.getOneArticle(idx);
+		ModelAndView mav = new ModelAndView();
+		
+		if(!userId.equals(board.getWriterId())) {
+			mav.addObject("errcode", "1");
+			mav.addObject("idx", idx);
+			mav.setViewName("redirect:view.do");
+		}
+		else {
+			List<BoardCommentModel> commentList = boardService.getCommentList(idx);
+			if(commentList.size() > 0) {
+				mav.addObject("errCode", "2");
+				mav.addObject("idx", idx);
+				mav.setViewName("redirect:view.do");
+			}
+			else {
+				if(board.getFileName() != null) {
+					File removeFile = new File(uploadPath + board.getFileName());
+					removeFile.delete();
+				}
+				
+				boardService.deleteArticle(idx);
+				
+				mav.setViewName("redirect:list.do");
+			}
+		}
+		return mav;
+	}
+	
+	@RequestMapping("/commentDelete.do")
+	public ModelAndView commendDelete(HttpServletRequest request, HttpSession session) {
+		int idx = Integer.parseInt(request.getParameter("idx"));
+		int linkedArticleNum = Integer.parseInt(request.getParameter("linkedArticleNum"));
+		System.out.println("11111111");
+		String userId = (String) session.getAttribute("userId");
+		BoardCommentModel comment = boardService.getOneComment(idx);
+		
+		ModelAndView mav = new ModelAndView();
+		
+		if(!userId.equals(comment.getWriterId())) {
+			mav.addObject("errCode", "1");
+		}
+		else {
+			System.out.println("2222222222");
+			boardService.deleteComment(idx);
+		}
+		System.out.println("33333333");
+		mav.addObject("idx", linkedArticleNum);
+		mav.setViewName("redirect:view.do");
+		
+		return mav;
+	}
+	
+	@RequestMapping("/recommend.do")
+	public ModelAndView updateRecommendcount(HttpServletRequest request, HttpSession session) {
+		
+		int idx = Integer.parseInt(request.getParameter("idx"));
+		String userId = (String) session.getAttribute("userId");
+		BoardModel board = boardService.getOneArticle(idx);
+		
+		ModelAndView mav = new ModelAndView();
+		
+		if(userId.equals(board.getWriterId())) {
+			mav.addObject("errCode", "1");
+		}else {
+			boardService.updateRecommendCount(board.getRecommendcount() +1, idx);
+		}
+		
+		mav.addObject("idx", idx);
+		mav.setViewName("redirect:/board/view.do");
+		
+		return mav;
+	}
 	
 	
 }
