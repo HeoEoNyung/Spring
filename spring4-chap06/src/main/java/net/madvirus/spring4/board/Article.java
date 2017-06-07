@@ -29,7 +29,7 @@ public class Article {
 	public String getWriterName() {
 		return writerName;
 	}
-
+	
 	public void setWriterName(String writerName) {
 		this.writerName = writerName;
 	}
