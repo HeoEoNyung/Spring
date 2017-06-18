@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="EUC-KR">
+<title>Insert title here</title>
+<script type="text/javascript" src="log.js"></script>
+<script type="text/javascript" src="member.js"></script>
+<script type="text/javascript">
+	window.onload = function() {
+		var mem = new Member("era13", "최범균", "7700001000000");
+		log('변겅전');
+		log('회원  : '+ mem.toString());
+		log('나이  : '+ mem.getAge());
+		
+		mem.setValue("madvirus", "최범균2", "8000001000000");
+		log('변겅후');
+		log('회원 : '+mem.toString());
+		log('나이 : '+mem.getAge());
+	}
+</script>
+
+</head>
+<body>
+<div id="debugConsole"></div>
+</body>
+</html>

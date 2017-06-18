@@ -12,4 +12,6 @@ public class CommonDAO extends AbstractDAO {
 		return (Map<String, Object>) selectOne("common.selectFileInfo", map);
 	}
 	
+
+	
 }

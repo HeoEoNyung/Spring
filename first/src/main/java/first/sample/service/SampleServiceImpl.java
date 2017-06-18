@@ -43,6 +43,7 @@ public class SampleServiceImpl implements SampleService{
 	@Override
 	public Map<String, Object> selectBoardDetail(Map<String, Object> map) throws Exception {
 		sampleDAO.updateHitCnt(map);
+		
 		Map<String, Object> resultMap = new HashMap<String,Object>();
 		Map<String, Object> tempMap = sampleDAO.selectBoardDetail(map);
 		resultMap.put("map", tempMap);
@@ -56,22 +57,23 @@ public class SampleServiceImpl implements SampleService{
 	}
 
 	@Override
-	public void updateBoard(Map<String, Object> map, HttpServletRequest request) throws Exception {
-		sampleDAO.updateBoard(map);
-		
-		 sampleDAO.deleteFileList(map);
-		    List<Map<String,Object>> list = fileUtils.parseUpdateFileInfo(map, request);
-		    Map<String,Object> tempMap = null; 
-		    for(int i=0, size=list.size(); i<size; i++){
-		        tempMap = list.get(i);
-		        if(tempMap.get("IS_NEW").equals("Y")){
-		            sampleDAO.insertFile(tempMap);
-		        }
-		        else{
-		            sampleDAO.updateFile(tempMap);
-		        }
-		    }
+	public void updateBoard(Map<String, Object> map, HttpServletRequest request) throws Exception{
 
+	    sampleDAO.updateBoard(map);
+ 
+	    sampleDAO.deleteFileList(map);
+	    List<Map<String,Object>> list = fileUtils.parseUpdateFileInfo(map, request);
+	    Map<String,Object> tempMap = null;
+
+	    for(int i=0, size=list.size(); i<size; i++){
+	        tempMap = list.get(i);
+	        if(tempMap.get("IS_NEW").equals("Y")){
+	            sampleDAO.insertFile(tempMap);
+	        }
+	        else{
+	            sampleDAO.updateFile(tempMap);
+	        }
+	    }
 	}
 
 	@Override

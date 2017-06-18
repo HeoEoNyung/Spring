@@ -15,5 +15,29 @@
     ]]>
 	</select>
 
+	<update id="deleteFileList" parameterType="hashmap">
+	<![CDATA[
+		update tb_file_eo set
+			del_gb = 'Y'
+		where
+			board_idx = #{IDX}
+	
+	]]>
+	</update>
+
+
+
+	<update id="updateFile" parameterType="hashmap">
+    <![CDATA[
+        UPDATE TB_FILE_EO SET
+            DEL_GB = 'N'
+
+        WHERE
+
+            IDX = #{FILE_IDX}   
+    ]]>
+	</update>
+
+
 
 </mapper>

@@ -4,8 +4,9 @@
 <head>
 <%@ include file="/WEB-INF/include-header.jspf" %>
 </head>
+
 <body>
-	<form id="frm">
+	<form id="frm" name="frm" enctype="multipart/form-data">
 		<table class="board_view">
 			<colgroup>
 				<col width="15%"/>
@@ -59,7 +60,7 @@
 		</table>
 	</form>
 	
-	<a href="#this" class="btn" id="list">파일추가</a>
+	<a href="#this" class="btn" id="addFile">파일추가</a>
 	<a href="#this" class="btn" id="list">목록으로</a>
 	<a href="#this" class="btn" id="update">저장하기</a>
 	<a href="#this" class="btn" id="delete">삭제하기</a>
